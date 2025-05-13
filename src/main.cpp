@@ -10,8 +10,9 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
     pinMode(EXTERNAL_LED_PIN, OUTPUT);
 
-    // ensure leds start low
-    digitalWrite(LED_PIN, LOW);
+    // set led to high so that we know its on!
+    digitalWrite(LED_PIN, HIGH);
+    // ensure external leds start low
     digitalWrite(EXTERNAL_LED_PIN, LOW);
 
     ensure_wifi_connected();
