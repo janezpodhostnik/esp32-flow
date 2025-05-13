@@ -6,34 +6,32 @@
 
 void setup() {
     Serial.begin(115200);
+
     pinMode(LED_PIN, OUTPUT);
     pinMode(EXTERNAL_LED_PIN, OUTPUT);
-    // ensure led starts low
+
+    // ensure leds start low
     digitalWrite(LED_PIN, LOW);
     digitalWrite(EXTERNAL_LED_PIN, LOW);
 
     ensure_wifi_connected();
     display_begin();
-
-    delay(100);
 }
-unsigned long latest_block = 0;
 
 void loop() {
     ensure_wifi_connected();
 
-    latest_block = get_latest_sealed_block();
-    if (latest_block != 0) {
-        lcd_display_info(latest_block);
+    const unsigned long latest_block = get_latest_sealed_block();
+    if (latest_block == 0) {
+        // failed getting latest block
+        delay(1000);
+        return;
     }
 
-    bool led_state = get_led_state_at_block(latest_block);
-    if (led_state) {
-        digitalWrite(EXTERNAL_LED_PIN, HIGH);
-    } else {
-        digitalWrite(EXTERNAL_LED_PIN, LOW);
-    }
-    Serial.print("test");
+    lcd_display_info(latest_block);
+
+    const bool led_state = get_led_state_at_block(latest_block);
+    digitalWrite(EXTERNAL_LED_PIN, led_state ? HIGH : LOW);
 
     delay(100);
 }

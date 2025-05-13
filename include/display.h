@@ -12,7 +12,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // https://github.com/adafruit/Adafruit_SSD1306/blob/master/examples/ssd1306_128x64_i2c/ssd1306_128x64_i2c.ino
 
-void lcd_display_info(unsigned long value) {
+inline void lcd_display_info(const unsigned long value) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -25,14 +25,24 @@ void lcd_display_info(unsigned long value) {
     display.display();
 }
 
-void display_begin() {
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  } else {
-    // Clear the buffer
+inline void display_begin() {
+    // TODO: make screen optional
+
+    if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;); // Don't proceed, loop forever
+    }
+
+    // Clear the buffer and add starting screen
     Serial.println("display connected");
     display.clearDisplay();
+
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+
+    display.println("ready to");
+    display.setTextSize(2);
+    display.println("FLOW");
     display.display();
-  }
-} 
+}
