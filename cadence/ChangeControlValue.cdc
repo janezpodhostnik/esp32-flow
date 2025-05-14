@@ -1,6 +1,6 @@
-import MicrocontrollerTest from 0x4af24a49688eaa92
+import MicrocontrollerTest from "MicrocontrollerTest"
 
-transaction(ledState: Bool) {
+transaction(newValue: Int64) {
   let adminRef: &MicrocontrollerTest.Admin
 
   prepare(acct: auth(BorrowValue) &Account) {
@@ -11,6 +11,6 @@ transaction(ledState: Bool) {
   }
 
   execute {
-    self.adminRef.setLed(ledState)
+    self.adminRef.setControlValue(newValue)
   }
 }

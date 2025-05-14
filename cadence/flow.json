@@ -1,0 +1,19 @@
+{
+  "networks": {
+    "testnet": "access.devnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "microcontroller": {
+      "address": "0d3c8d02b02ceb4c",
+      "key": "XXX"
+    }
+  },
+  "contracts": {
+    "MicrocontrollerTest": {
+      "aliases": {
+        "testnet": "0d3c8d02b02ceb4c"
+      }
+    }
+  },
+  "deployments": {}
+}

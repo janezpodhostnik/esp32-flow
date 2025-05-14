@@ -56,7 +56,7 @@ inline unsigned long get_latest_sealed_block() {
 }
 
 const String postBody = R"({
-    "script": "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDRhZjI0YTQ5Njg4ZWFhOTIKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IEJvb2wgewogIHJldHVybiBNaWNyb2NvbnRyb2xsZXJUZXN0LkxlZE9uCn0=",
+    "script": "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IEludDY0IHsKICByZXR1cm4gTWljcm9jb250cm9sbGVyVGVzdC5Db250cm9sVmFsdWUKfQ==",
     "arguments": []
 })";
 
@@ -80,7 +80,7 @@ inline bool get_led_state_at_block(unsigned long block) {
 
         JSONVar myObject = JSON.parse(reinterpret_cast<const char *>(output));
 
-        current_led_state = static_cast<bool>(myObject["value"]);
+        current_led_state = atol(myObject["value"]) > 0;
         Serial.print("current_led_state: ");
         Serial.println(current_led_state);
     } else {
