@@ -1,14 +1,9 @@
 #pragma once
 
 #include <WiFi.h>
-#include <HTTPClient.h>
-// examples for json get https://randomnerdtutorials.com/esp32-http-get-post-arduino/
-#include <Arduino_JSON.h>
-#include <arduino_base64.hpp>
 
+#include "flow.h"
 #include "wifi_credentials.h"
-
-const String flowRestAccess = "http://access-002.devnet52.nodes.onflow.org:8070";
 
 inline void ensure_wifi_connected() {
     if (WiFi.status() != WL_CONNECTED) {
@@ -62,34 +57,17 @@ const String postBody = R"({
 
 bool current_led_state = false;
 
-inline bool get_led_state_at_block(unsigned long block) {
-    HTTPClient http;
-    http.begin(flowRestAccess + "/v1/scripts?block_height=" + block);
+inline bool get_led_state_at_block(FlowClient *client, unsigned long block_height) {
+    JSONVar script_result = client->run_script(script, block_height);
 
-    http.addHeader("Content-Type", "application/json");
-
-    int httpResponseCode = http.POST(postBody);
-    if (httpResponseCode > 0) {
-        String input = http.getString();
-        input.remove(input.length() - 1, 1);
-        input.remove(0, 1);
-
-        const char *input2 = input.c_str();
-        uint8_t output[base64::decodeLength(input2)];
-        base64::decode(input2, output);
-
-        JSONVar myObject = JSON.parse(reinterpret_cast<const char *>(output));
-
-        current_led_state = atol(myObject["value"]) > 0;
+    if (script_result.hasOwnProperty("value")) {
+        current_led_state = static_cast<bool>(script_result["value"]);
         Serial.print("current_led_state: ");
         Serial.println(current_led_state);
     } else {
         Serial.print("Get led state error code: ");
-        Serial.println(httpResponseCode);
+        Serial.println(client->httpResponseCode);
     }
-
-    // Free resources
-    http.end();
 
     return current_led_state;
 }
