@@ -42,6 +42,35 @@ Block FlowClient::get_latest_sealed_block() {
     return {height, id};
 }
 
+unsigned long FlowClient::get_sequence_number(const String &address) {
+    HTTPClient http;
+    http.begin(this->url + "/v1/accounts/" + address + "/keys/0");
+    this->httpResponseCode = http.GET();
+    if (this->httpResponseCode <= 0) {
+        Serial.println("Error getting sequence number");
+        http.end();
+        return {};
+    }
+
+    const String payload = http.getString();
+    JSONVar myObject = JSON.parse(payload);
+
+    if (JSON.typeof(myObject) == "undefined") {
+        Serial.println("Error parsing sequence number");
+        // Parsing input failed!
+        http.end();
+        return {};
+    }
+
+    const unsigned long sequence_number = atol(myObject["sequence_number"]);
+    Serial.println("sequence_number: " + String(sequence_number));
+
+    // Free resources
+    http.end();
+
+    return sequence_number;
+}
+
 JSONVar FlowClient::run_script(const String &script, const unsigned long block_height) {
     String postBody = R"({
         "script": "%s",

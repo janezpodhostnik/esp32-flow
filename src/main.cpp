@@ -51,11 +51,27 @@ void setup() {
 
 FlowTX create_transaction() {
     FlowTX tx;
-    tx.script = "transaction { execute { } }";
+    tx.script = R"(
+import MicrocontrollerTest from 0x0d3c8d02b02ceb4c;
+
+transaction(newValue: Int64) {
+  let adminRef: &MicrocontrollerTest.Admin;
+
+  prepare(acct: auth(BorrowValue) &Account) {
+    self.adminRef = acct.storage.borrow<&MicrocontrollerTest.Admin>
+      (from: MicrocontrollerTest.AdminStoragePath)
+      ?? panic("Couldn't borrow Admin Resource");
+  }
+
+  execute {
+    self.adminRef.setControlValue(newValue)
+  }
+}
+)";
+    tx.arguments.emplace_back(R"({"type":"Int64","value":"0"})");
     tx.gas_limit = 9999;
     tx.proposal_key.address = "0x0d3c8d02b02ceb4c";
     tx.proposal_key.key_index = 0;
-    tx.proposal_key.sequence_number = 15;
     tx.payer = "0x0d3c8d02b02ceb4c";
     tx.authorizers.emplace_back("0x0d3c8d02b02ceb4c");
 
@@ -86,21 +102,22 @@ void loop() {
     if (button.pop_pressed()) {
         Serial.println("Button has been pressed");
         FlowTX tx = create_transaction();
-        auto sig = tx.sign_envelope();
         tx.reference_block_id = latest_block.id;
+        tx.proposal_key.sequence_number = client.get_sequence_number(tx.proposal_key.address);
+
+
+        if (led_state) {
+            tx.arguments[0] = R"({"type":"Int64","value":"0"})";
+        } else {
+            tx.arguments[0] = R"({"type":"Int64","value":"1"})";
+        }
+
+        auto sig = tx.sign_envelope();
         tx.envelope_signatures.emplace_back(FlowTX::Signature{
             0, 0, sig
         });
 
         client.send_tx(tx);
-
-        auto envelope = tx.to_envelope_rlp();
-        Serial.println(RLP::VectorToString(&envelope));
-        auto hash = tx.to_hashed_envelope();
-        Serial.println(RLP::ConvertBytesToHex(hash.data(), hash.size()));
-        Serial.println(RLP::ConvertBytesToHex(sig.data(), sig.size()));
-        //
-        // Serial.println(tx.to_json());
     }
 
     delay(100);

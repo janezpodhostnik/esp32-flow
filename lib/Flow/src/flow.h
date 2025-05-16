@@ -28,9 +28,12 @@ public:
      */
     JSONVar run_script(const String &script, unsigned long block_height);
 
+    unsigned long get_sequence_number(const String &address);
+
     String send_tx(const FlowTX &tx);
 
     String envelope_rlp() const;
+
 private:
     String url;
 };

@@ -19,7 +19,7 @@ inline void ensure_wifi_connected() {
 }
 
 const String script =
-        "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IFVJbnQ2NCB7CiAgcmV0dXJuIE1pY3JvY29udHJvbGxlclRlc3QuRXZlbnRTZXF1ZW5jZU51bWJlcgp9";
+        "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IEludDY0IHsKICByZXR1cm4gTWljcm9jb250cm9sbGVyVGVzdC5Db250cm9sVmFsdWUKfQo=";
 
 bool current_led_state = false;
 

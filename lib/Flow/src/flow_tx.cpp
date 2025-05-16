@@ -3,9 +3,9 @@
 #include <arduino_base64.hpp>
 #include "rlp.h"
 #include <SHA3.h>
-#include <SHA1.h>
 #include <uECC.h>
 
+String PRIVATE_KEY_HEX = "FAKE";
 
 
 String base64_encode(String s) {
@@ -225,6 +225,8 @@ std::array<uint8_t, 32> FlowTX::to_hashed_envelope() const {
     SHA3_256 sha3_256;
     sha3_256.reset();
     auto envelope = to_envelope_rlp();
+    Serial.print("message: ");
+    Serial.println(RLP::ConvertBytesToHex(envelope.data(), envelope.size()));
     uint8_t tag[32];
     RLP::ConvertHexToBytes(tag, "464c4f572d56302e302d7472616e73616374696f6e0000000000000000000000", 32);
     sha3_256.update(tag, 32);
@@ -235,33 +237,12 @@ std::array<uint8_t, 32> FlowTX::to_hashed_envelope() const {
     return hash;
 }
 
-typedef struct {
-    uECC_HashContext uECC;
-    SHA1 sha1;
-} SHA1_HashContext;
-
-void init_SHA1(const uECC_HashContext *base) {
-    SHA1_HashContext *context = (SHA1_HashContext *)base;
-    context->sha1.reset();
-}
-
-void update_SHA1(const uECC_HashContext *base, const uint8_t *message, unsigned message_size) {
-    SHA1_HashContext *context = (SHA1_HashContext *)base;
-    context->sha1.update(message, message_size);
-}
-
-void finish_SHA1(const uECC_HashContext *base, uint8_t *hash_result) {
-    SHA1_HashContext *context = (SHA1_HashContext *)base;
-    context->sha1.finalize(hash_result, sizeof(hash_result));
-}
-
 std::array<uint8_t, 64> FlowTX::sign_envelope() const {
-    uint8_t private_key[32] = {
-        //
-    };
+    uint8_t private_key[32] = {};
+    RLP::ConvertHexToBytes(private_key,PRIVATE_KEY_HEX.c_str(), 32);
 
-    uint8_t public_compressed[64] = {};
-    RLP::ConvertHexToBytes(public_compressed,
+    uint8_t public_key[64] = {};
+    RLP::ConvertHexToBytes(public_key,
                            "7af4f022050c4f9d450d521b05154ea198a8028d2912e18b701991c38ed6e8b0b03748a2fcc068f635d461cc4440e6c2becae1a9112a7e6d6ff3e9c57b5f9cdd",
                            64);
     std::array<uint8_t, 32> hash = to_hashed_envelope();
@@ -269,31 +250,16 @@ std::array<uint8_t, 64> FlowTX::sign_envelope() const {
     uECC_Curve curve = uECC_secp256r1();
 
 
-    uint8_t public_key[64];
-    uECC_decompress(public_compressed, public_key, curve);
-
-    int isValid = uECC_valid_public_key(public_compressed, curve);
+    int isValid = uECC_valid_public_key(public_key, curve);
     if (!isValid) {
         Serial.println("Invalid public key");
         Serial.println(RLP::ConvertBytesToHex(public_key, 64));
         return {};
     }
 
+    Serial.print("hash: ");
+    Serial.println(RLP::ConvertBytesToHex(hash.data(), hash.size()));
 
-    uint8_t tmp[64 + 20 + 20]; // block_size + 2 * result_size
-    SHA1_HashContext sha1_ctx = {
-        {
-            init_SHA1,
-            update_SHA1,
-            finish_SHA1,
-            64,  // SHA1 block size
-            20,  // SHA1 digest size
-            tmp
-        },
-        SHA1() // Initialize SHA1 instance}};
-        };
-
-    //if (!uECC_sign_deterministic(private_key, hash.data(), hash.size(), &sha1_ctx.uECC, sig.data(), curve)) {
     if (!uECC_sign(private_key, hash.data(), hash.size(), sig.data(), curve)) {
         Serial.println("Failed to sign envelope");
         Serial.println(RLP::ConvertBytesToHex(hash.data(), hash.size()));
@@ -301,9 +267,12 @@ std::array<uint8_t, 64> FlowTX::sign_envelope() const {
         return {};
     }
 
-    if (!uECC_verify(public_compressed, hash.data(), hash.size(), sig.data(), curve)) {
+    if (!uECC_verify(public_key, hash.data(), hash.size(), sig.data(), curve)) {
         Serial.println("Failed to verify envelope signature");
     }
+
+    Serial.print("signature: ");
+    Serial.println(RLP::ConvertBytesToHex(sig.data(), sig.size()));
 
     return sig;
 }
