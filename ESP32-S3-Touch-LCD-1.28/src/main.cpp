@@ -60,11 +60,6 @@ inline unsigned long get_latest_sealed_block() {
     return result;
 }
 
-const String postBody = R"({
-    "script": "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IEludDY0IHsKICByZXR1cm4gTWljcm9jb250cm9sbGVyVGVzdC5Db250cm9sVmFsdWUKfQ==",
-    "arguments": []
-})";
-
 void setup() {
     Serial.begin(115200);
     //set monitor backlight
