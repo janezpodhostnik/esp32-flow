@@ -92,3 +92,5 @@ Events:
                 - type (String): "A.7e60df042a9c0868.FlowToken.Vault"
                 - withdrawnUUID (UInt64): 16492674547182
 ```
+
+Note: inspect the account: https://testnet.flowscan.io/account/0d3c8d02b02ceb4c
