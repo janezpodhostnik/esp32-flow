@@ -6,13 +6,12 @@
 
 #include "block.h"
 
-FlowClient::FlowClient(String url) {
+FlowClient::FlowClient(const String &url) {
     this->url = url;
     this->httpResponseCode = 0;
 }
 
-FlowClient::~FlowClient() {
-}
+FlowClient::~FlowClient() = default;
 
 Block FlowClient::get_latest_sealed_block() {
     HTTPClient http;
@@ -21,26 +20,26 @@ Block FlowClient::get_latest_sealed_block() {
 
     if (this->httpResponseCode <= 0) {
         http.end();
-        return Block();
+        return {};
     }
 
-    String payload = http.getString();
+    const String payload = http.getString();
     JSONVar myObject = JSON.parse(payload);
 
     if (JSON.typeof(myObject) == "undefined") {
         // Parsing input failed!
         http.end();
-        return Block();
+        return {};
     }
 
-    unsigned long height = atol(myObject[0]["header"]["height"]);
-    String id = myObject[0]["header"]["id"];
+    const unsigned long height = atol(myObject[0]["header"]["height"]);
+    const String id = myObject[0]["header"]["id"];
 
 
     // Free resources
     http.end();
 
-    return Block(height, id);
+    return {height, id};
 }
 
 JSONVar FlowClient::run_script(const String &script, const unsigned long block_height) {
@@ -56,7 +55,7 @@ JSONVar FlowClient::run_script(const String &script, const unsigned long block_h
     this->httpResponseCode = http.POST(postBody);
     if (this->httpResponseCode <= 0) {
         http.end();
-        return JSONVar();
+        return {};
     }
 
     // for some reason the returned json is in quotes and base64 encoded
@@ -77,55 +76,22 @@ JSONVar FlowClient::run_script(const String &script, const unsigned long block_h
 }
 
 
-String FlowClient::send_tx(FlowTX tx) {
-    /*{
+String FlowClient::send_tx(const FlowTX &tx) {
+    HTTPClient http;
+    http.begin(this->url + "/v1/transactions");
+    http.addHeader("Content-Type", "application/json");
 
-    "script": "string",
-    "arguments":
-[
-
-    "string"
-
-],
-"reference_block_id": "string",
-"gas_limit": "string",
-"payer": "string",
-"proposal_key":
-{
-
-    "address": "string",
-    "key_index": "string",
-    "sequence_number": "string"
-
-},
-"authorizers":
-[
-
-    "string"
-
-],
-"payload_signatures":
-[
-
-    {
-        "address": "string",
-        "key_index": "string",
-        "signature": "string"
+    Serial.println("request");
+    Serial.println(tx.to_json());
+    this->httpResponseCode = http.POST(tx.to_json());
+    if (this->httpResponseCode <= 0) {
+        http.end();
+        return {};
     }
 
-],
-"envelope_signatures":
-[
+    String input = http.getString();
+    Serial.println("response");
+    Serial.println(input);
 
-        {
-            "address": "string",
-            "key_index": "string",
-            "signature": "string"
-        }
-    ]
-
-}
-     */
-
-   return "";
+    return "";
 }

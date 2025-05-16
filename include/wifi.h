@@ -18,42 +18,8 @@ inline void ensure_wifi_connected() {
     }
 }
 
-inline unsigned long get_latest_sealed_block() {
-    unsigned long result = 0;
-
-    HTTPClient http;
-    http.begin(flowRestAccess + "/v1/blocks?height=sealed");
-    const int httpResponseCode = http.GET();
-
-    if (httpResponseCode > 0) {
-        String payload = http.getString();
-
-        JSONVar myObject = JSON.parse(payload);
-
-        // JSON.typeof(jsonVar) can be used to get the type of the var
-        if (JSON.typeof(myObject) != "undefined") {
-            result = atol(myObject[0]["header"]["height"]);
-
-            Serial.print("block: ");
-            Serial.println(result);
-        } else {
-            Serial.println("Parsing input failed!");
-        }
-    } else {
-        Serial.print("Get sealed block error code: ");
-        Serial.println(httpResponseCode);
-    }
-
-    // Free resources
-    http.end();
-
-    return result;
-}
-
-const String postBody = R"({
-    "script": "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IEludDY0IHsKICByZXR1cm4gTWljcm9jb250cm9sbGVyVGVzdC5Db250cm9sVmFsdWUKfQ==",
-    "arguments": []
-})";
+const String script =
+        "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKCmFjY2VzcyhhbGwpIGZ1biBtYWluKCk6IFVJbnQ2NCB7CiAgcmV0dXJuIE1pY3JvY29udHJvbGxlclRlc3QuRXZlbnRTZXF1ZW5jZU51bWJlcgp9";
 
 bool current_led_state = false;
 
@@ -61,12 +27,13 @@ inline bool get_led_state_at_block(FlowClient *client, unsigned long block_heigh
     JSONVar script_result = client->run_script(script, block_height);
 
     if (script_result.hasOwnProperty("value")) {
-        current_led_state = static_cast<bool>(script_result["value"]);
+        current_led_state = atol(script_result["value"]) > 0;
         Serial.print("current_led_state: ");
         Serial.println(current_led_state);
     } else {
         Serial.print("Get led state error code: ");
         Serial.println(client->httpResponseCode);
+        Serial.println(script_result);
     }
 
     return current_led_state;

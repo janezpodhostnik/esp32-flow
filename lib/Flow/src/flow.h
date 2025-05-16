@@ -3,7 +3,7 @@
 #include <Arduino_JSON.h>
 
 #include "block.h"
-#include "tx.h"
+#include "flow_tx.h"
 
 /**
  * Represents a client used to interact with a Flow blockchain network.
@@ -13,7 +13,7 @@ class FlowClient {
 public:
     int httpResponseCode;
 
-    explicit FlowClient(String url);
+    explicit FlowClient(const String &url);
 
     ~FlowClient();
 
@@ -28,7 +28,9 @@ public:
      */
     JSONVar run_script(const String &script, unsigned long block_height);
 
-    String send_tx(FlowTX tx);
+    String send_tx(const FlowTX &tx);
+
+    String envelope_rlp() const;
 private:
     String url;
 };
