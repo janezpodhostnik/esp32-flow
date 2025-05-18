@@ -9,6 +9,7 @@
 #include "Adafruit_GC9A01A.h"
 //mine
 #include "wifi_credentials.h"
+#include "flow.h"
 
 //values from from TFT_eSPI, User_Setup_Select.h 
 Adafruit_GC9A01A tft(9, 8, 11, 10, 14, 12);
@@ -77,18 +78,47 @@ void setup() {
     delay(3000);
 }
 
+FlowClient client("http://access-002.devnet52.nodes.onflow.org:8070");
+/*
+import MicrocontrollerTest from 0x0d3c8d02b02ceb4c
+  access(all) fun main(): Int64 {
+  return MicrocontrollerTest.ControlValue
+}
+*/
+const String script = "aW1wb3J0IE1pY3JvY29udHJvbGxlclRlc3QgZnJvbSAweDBkM2M4ZDAyYjAyY2ViNGMKYWNjZXNzKGFsbCkgZnVuIG1haW4oKTogSW50NjQgewpyZXR1cm4gTWljcm9jb250cm9sbGVyVGVzdC5Db250cm9sVmFsdWUKfQ==";
+
+void get_value(unsigned long block) {
+    Serial.println("running script");
+
+    JSONVar script_result = client.run_script(script, block);
+        
+    Serial.println("script done");
+    String tmp = JSON.stringify(script_result);
+    Serial.print("Value: ");
+    Serial.println(tmp); 
+
+    tft.setCursor(10, 120);
+    tft.setTextSize(2);
+    tft.println(tmp);
+}
+
 void loop() {
     tft.fillScreen(GC9A01A_BLACK);
     tft.setRotation(0);
     ensure_wifi_connected();
     
     //Serial.println("Hello Jan");
-    tft.setCursor(40, 110);
+    tft.setCursor(40, 80);
     tft.setTextColor(GC9A01A_GREEN);
     tft.setTextSize(3);
     unsigned long block = get_latest_sealed_block();
     tft.println(block);
     Serial.printf("latest sealed block: %d\n", block);
+
+    if(block > 0)
+    {
+        get_value(block);
+    }
 
     delay(1000);
 }
