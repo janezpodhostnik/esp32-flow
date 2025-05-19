@@ -1,2 +1,7 @@
 .pio
 .idea
+
+# TEMPLATEs (without sensitive information) of the following files are already committed.
+# Excluding them  to avoid accidentally committing modified versions with passwords. 
+**/WiFiCredentials.h
+**/flow.json
